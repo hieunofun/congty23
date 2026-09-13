@@ -380,7 +380,8 @@ export const fbGetAttendanceByEmployee = async (employeeId, companyId = DEFAULT_
 
 /**
  * Load attendance logs for one YYYY-MM (filters by data.date prefix).
- * Ưu tiên đọc từ bảng cham_cong chính thức của công ty hiện tại.
+ * Ưu tiên log Excel/online trong hr_records; dùng cham_cong làm fallback
+ * cho dữ liệu cũ chưa có log mềm.
  */
 export const fbGetAttendanceLogsByMonth = async (month, companyId = DEFAULT_COMPANY_ID) => {
   const period = String(month || '').trim()
@@ -389,7 +390,38 @@ export const fbGetAttendanceLogsByMonth = async (month, companyId = DEFAULT_COMP
   const [year, monthNumber] = period.split('-').map(Number)
   const lastDay = String(new Date(year, monthNumber, 0).getDate()).padStart(2, '0')
 
-  // 1. Đọc từ bảng cham_cong chính thức liên kết với nhan_su
+  // Ưu tiên log Excel/online trong hr_records. Bảng cham_cong có thể chỉ
+  // chứa các dòng cũ thiếu giờ; nếu thấy dữ liệu ở đây thì dùng nó để tính
+  // công và hiển thị chi tiết, tránh làm tổng công về 0.
+  try {
+    const rows = []
+    const pageSize = 1000
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabase
+        .from('hr_records')
+        .select('id, data')
+        .eq('company_id', tenantId)
+        .eq('collection', 'attendanceLogs')
+        .gte('data->>date', `${period}-01`)
+        .lte('data->>date', `${period}-${lastDay}`)
+        .order('id', { ascending: true })
+        .range(from, from + pageSize - 1)
+      if (error) throw error
+      rows.push(...(data || []))
+      if (!data || data.length < pageSize) break
+    }
+    if (rows.length > 0) {
+      const out = {}
+      rows.forEach(row => {
+        out[logicalRecordId(row.id, 'attendanceLogs', companyId)] = row.data || {}
+      })
+      return out
+    }
+  } catch (err) {
+    console.warn('[fbGetAttendanceLogsByMonth] Lỗi đọc log hr_records:', err)
+  }
+
+  // Nếu chưa có log mềm thì đọc bảng cham_cong chính thức liên kết với nhan_su.
   try {
     let query = supabase
       .from('cham_cong')
