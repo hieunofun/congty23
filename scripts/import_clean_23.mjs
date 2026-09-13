@@ -2,28 +2,35 @@ import { createClient } from '@supabase/supabase-js'
 import fs from 'fs'
 import xlsx from 'xlsx'
 
-const url = process.env.VITE_SUPABASE_URL || 'https://abghublsyvuyangkyibz.supabase.co'
+const url = process.env.VITE_SUPABASE_URL || ''
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || ''
+const DEFAULT_COMPANY_ID = '00000000-0000-0000-0000-000000000023'
+
+if (!url || !key) {
+  throw new Error('Thiếu VITE_SUPABASE_URL hoặc Supabase key cho Công ty 23.')
+}
 const supabase = createClient(url, key)
 
 async function run() {
-  console.log('=== BƯỚC 1: Xóa dữ liệu test cũ trên DATABASE MỚI (Company B: abghublsyvuyangkyibz) ===')
+  console.log('=== BƯỚC 1: Xóa dữ liệu test cũ của Công ty 23 ===')
   const { count: delCcCount, error: delCcErr } = await supabase
     .from('cham_cong')
     .delete({ count: 'exact' })
-    .neq('id', '00000000-0000-0000-0000-000000000000')
+    .eq('company_id', DEFAULT_COMPANY_ID)
   console.log('Đã xóa cham_cong cũ:', delCcCount, 'lỗi:', delCcErr)
 
   const { count: delHrCount, error: delHrErr } = await supabase
     .from('hr_records')
     .delete({ count: 'exact' })
     .in('collection', ['attendanceLogs', 'attendanceMonthSummaries'])
+    .like('id', `${DEFAULT_COMPANY_ID}::%`)
   console.log('Đã xóa hr_records cũ (attendanceLogs, attendanceMonthSummaries):', delHrCount, 'lỗi:', delHrErr)
 
   console.log('\n=== BƯỚC 2: Kiểm tra bảng nhan_su ===')
   const { data: nhanSuList, error: nsErr } = await supabase
     .from('nhan_su')
     .select('*')
+    .eq('company_id', DEFAULT_COMPANY_ID)
     .order('ma_nhan_vien')
   console.log('Số nhân viên trong nhan_su:', nhanSuList.length)
   nhanSuList.forEach(ns => {
@@ -46,7 +53,6 @@ async function run() {
   })
   console.log('Số cột ngày phát hiện:', dateCols.length)
 
-  const DEFAULT_COMPANY_ID = '00000000-0000-0000-0000-000000000022'
   const chamCongToInsert = []
   const hrLogsToInsert = []
 

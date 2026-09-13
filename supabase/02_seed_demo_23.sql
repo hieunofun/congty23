@@ -1,13 +1,13 @@
 -- =============================================================================
--- CÔNG TY B (COMPANY B) — DỮ LIỆU DEMO GIẢ LẬP ĐỂ TEST
+-- CÔNG TY 23 (COMPANY 23) — DỮ LIỆU DEMO GIẢ LẬP ĐỂ TEST
 -- File này hoàn toàn KHÔNG sử dụng bất kỳ dữ liệu thật nào của Công ty A.
 -- Chỉ tạo 1 công ty mẫu và 8 nhân viên giả lập theo đúng mẫu Excel (Ảnh 2).
--- Chạy script này trên SQL Editor của Supabase Project MỚI (Company B).
+-- Chạy script này trên SQL Editor của Supabase Project MỚI (Company 23).
 -- =============================================================================
 
 DO $$
 DECLARE
-    v_company_id UUID := '00000000-0000-0000-0000-000000000022'::UUID;
+    v_company_id UUID := '00000000-0000-0000-0000-000000000023'::UUID;
     v_nv1 UUID := '00000000-0000-0000-0001-000000000001'::UUID;
     v_nv2 UUID := '00000000-0000-0000-0001-000000000002'::UUID;
     v_nv3 UUID := '00000000-0000-0000-0001-000000000003'::UUID;
@@ -23,12 +23,12 @@ DECLARE
     v_nhan_su_ids UUID[] := ARRAY[v_nv1, v_nv2, v_nv3, v_nv4, v_nv5, v_nv6, v_nv7, v_nv8];
     v_id UUID;
 BEGIN
-    -- 1. TẠO CÔNG TY DEMO B
+    -- 1. TẠO CÔNG TY DEMO 23
     INSERT INTO public.companies (id, code, name, address, phone)
     VALUES (
         v_company_id,
-        'COMPANY_B',
-        'Công ty TNHH Demo B',
+        'COMPANY_23',
+        'Công ty TNHH Demo 23',
         'Tầng 5, Tòa nhà Innovation, Hà Nội',
         '0901234567'
     )

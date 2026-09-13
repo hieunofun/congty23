@@ -1,10 +1,10 @@
--- Đổi ID Công ty B từ UUID đại diện 1 sang UUID đại diện 22.
+-- Đổi ID Công ty 23 từ UUID đại diện 1 sang UUID đại diện 23.
 -- Script tự tìm mọi khóa ngoại trực tiếp tới public.companies(id),
 -- nên vẫn an toàn khi các bảng multi-company mới được bổ sung sau này.
 DO $$
 DECLARE
   old_company_id CONSTANT UUID := '00000000-0000-0000-0000-000000000001';
-  new_company_id CONSTANT UUID := '00000000-0000-0000-0000-000000000022';
+  new_company_id CONSTANT UUID := '00000000-0000-0000-0000-000000000023';
   original_company_code TEXT;
   original_company JSONB;
   company_reference RECORD;

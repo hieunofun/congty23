@@ -1,7 +1,7 @@
 {
-  "name": "hr-company-b",
+  "name": "hr-company-23",
   "version": "1.0.0",
-  "description": "Hệ thống Quản lý Nhân sự & Chấm công - Company B",
+  "description": "Hệ thống Quản lý Nhân sự & Chấm công - Company 23",
   "type": "module",
   "private": true,
   "scripts": {

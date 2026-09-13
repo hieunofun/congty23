@@ -1,4 +1,4 @@
--- Ensure every existing user profile belongs to Company B (UUID 22) while
+-- Ensure every existing user profile belongs to Company 23 (UUID 23) while
 -- keeping the migration safe to run whether the additive multi-company
 -- migration has already added users.company_id or not.
 BEGIN;
@@ -53,19 +53,19 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1
     FROM public.companies
-    WHERE id = '00000000-0000-0000-0000-000000000022'::UUID
+    WHERE id = '00000000-0000-0000-0000-000000000023'::UUID
   ) THEN
-    RAISE EXCEPTION 'Company B UUID 22 must exist before assigning users';
+    RAISE EXCEPTION 'Company 23 UUID must exist before assigning users';
   END IF;
 END
 $$;
 
 ALTER TABLE public.users
-  ALTER COLUMN company_id SET DEFAULT '00000000-0000-0000-0000-000000000022'::UUID;
+  ALTER COLUMN company_id SET DEFAULT '00000000-0000-0000-0000-000000000023'::UUID;
 
 -- Only fill missing tenant IDs; preserve any explicit existing assignment.
 UPDATE public.users
-SET company_id = '00000000-0000-0000-0000-000000000022'::UUID
+SET company_id = '00000000-0000-0000-0000-000000000023'::UUID
 WHERE company_id IS NULL;
 
 COMMIT;

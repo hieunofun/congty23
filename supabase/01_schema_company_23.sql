@@ -1,6 +1,6 @@
 -- =============================================================================
--- CÔNG TY B (COMPANY B) — SUPABASE SCHEMA CỐT LÕI
--- Chạy toàn bộ script này trên SQL Editor của project Supabase MỚI (Company B).
+-- CÔNG TY 23 (COMPANY 23) — SUPABASE SCHEMA CỐT LÕI
+-- Chạy toàn bộ script này trên SQL Editor của project Supabase MỚI (Company 23).
 -- Tuyệt đối KHÔNG chạy trên project Supabase cũ của Công ty A.
 -- =============================================================================
 
