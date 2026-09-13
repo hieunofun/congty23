@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import EmployeeDirectory from '../components/EmployeeDirectory'
 import { supabase } from '../services/supabase'
+import { useAuth } from '../contexts/AuthContext'
+import { getCompanyIdForUser } from '../utils/companyContext'
 import { formatDateDisplay, getEmployeeEmploymentStatus, mapAppToUser, mapUserToApp, parseFlexibleDate, runUsersMutationWithSchemaFallback, USERS_DIRECTORY_COLUMNS, getMissingUsersColumnFromError } from '../utils/helpers'
 
 const loadXlsx = () => import('xlsx')
 
-const fetchUsersDirectory = async () => {
+const fetchUsersDirectory = async (companyId) => {
     let columns = USERS_DIRECTORY_COLUMNS.split(', ')
     const pageSize = 1000
 
@@ -13,6 +15,7 @@ const fetchUsersDirectory = async () => {
         supabase
             .from('users')
             .select(columns.join(','))
+            .eq('company_id', companyId)
             .order('name', { ascending: true })
             .range(from, from + pageSize - 1)
 
@@ -64,6 +67,8 @@ const EMPLOYEE_EXCEL_HEADERS = [
 ]
 
 function Employees() {
+    const { user } = useAuth()
+    const companyId = getCompanyIdForUser(user)
     const [employees, setEmployees] = useState([])
     const [filteredEmployees, setFilteredEmployees] = useState([])
     const [loading, setLoading] = useState(true)
@@ -85,7 +90,7 @@ function Employees() {
 
     useEffect(() => {
         loadEmployees()
-    }, [])
+    }, [companyId])
 
     useEffect(() => {
         filterEmployees()
@@ -94,7 +99,7 @@ function Employees() {
     const loadEmployees = async () => {
         try {
             setLoading(true)
-            const data = await fetchUsersDirectory()
+            const data = await fetchUsersDirectory(companyId)
             setEmployees((data || []).map(u => mapUserToApp(u)))
             setLoading(false)
         } catch (err) {
@@ -110,6 +115,7 @@ function Employees() {
             .from('users')
             .select('*')
             .eq('id', employee.id)
+            .eq('company_id', companyId)
             .maybeSingle()
         if (error || !data) return employee
         return mapUserToApp(data)
@@ -199,6 +205,7 @@ function Employees() {
                 .from('users')
                 .delete()
                 .eq('id', id)
+                .eq('company_id', companyId)
 
             if (error) throw error
 
@@ -513,14 +520,14 @@ function Employees() {
                     continue
                 }
 
-                const dbPayload = mapAppToUser(payload)
+                const dbPayload = { ...mapAppToUser(payload), company_id: companyId }
                 const codeKey = normalizeCode(payload.employeeId)
                 const existing = codeKey ? existingByCode.get(codeKey) : null
 
                 let mutationResult
                 if (existing?.id) {
                     mutationResult = await runUsersMutationWithSchemaFallback(
-                        (payloadToSave) => supabase.from('users').update(payloadToSave).eq('id', existing.id),
+                        (payloadToSave) => supabase.from('users').update(payloadToSave).eq('id', existing.id).eq('company_id', companyId),
                         dbPayload
                     )
                 } else {
@@ -770,6 +777,7 @@ function Employees() {
     }
 
     return <EmployeeDirectory
+        companyId={companyId}
         employees={employees}
         filteredEmployees={filteredEmployees}
         activeTab={activeTab}
